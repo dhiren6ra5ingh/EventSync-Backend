@@ -114,8 +114,8 @@ def get_vendor_tasks():
         
     vendor_id_str = str(vendor_user["_id"])
 
-    # Search for tasks assigned to this vendor ID
-    tasks_cursor = mongo.db.tasks.find({
+    # Search the events collection where the admin actually saved the assignment
+    tasks_cursor = mongo.db.events.find({
         "vendor_id": vendor_id_str
     })
 
