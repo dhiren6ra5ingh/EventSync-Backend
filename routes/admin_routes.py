@@ -166,3 +166,22 @@ def get_all_vendors():
         vendors.append(vendor)
     
     return jsonify(vendors), 200
+
+@admin_bp.route('/users/<user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    claims = get_jwt()
+    # Security check: Only admins can delete accounts
+    if claims.get("role") != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    from app import mongo
+    from bson.objectid import ObjectId
+    
+    # Delete the user
+    mongo.db.users.delete_one({"_id": ObjectId(user_id)})
+    
+    # Optional but recommended: Delete their associated events
+    mongo.db.events.delete_many({"client_id": str(user_id)})
+    
+    return jsonify({"message": "Client account deleted successfully"}), 200
