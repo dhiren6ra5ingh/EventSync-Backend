@@ -322,3 +322,27 @@ def get_event_status(event_id):
         "budget_overview": budget_summary
         
     }), 200
+
+@event_bp.route('/api/client/cancel-event/<event_id>', methods=['PUT'])
+@jwt_required()
+def cancel_event(event_id):
+    from app import mongo
+    claims = get_jwt()
+    if claims.get("role") != "client":
+        return jsonify({"error": "Only clients can cancel their own events."}), 403
+
+    try:
+        obj_id = ObjectId(event_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid Event ID"}), 400
+
+    client_id = get_jwt_identity()
+    event = mongo.db.events.find_one({"_id": obj_id, "client_id": client_id})
+    if not event:
+        return jsonify({"error": "Event not found or not yours."}), 404
+
+    if event.get("status") == "completed":
+        return jsonify({"error": "A completed event cannot be cancelled."}), 400
+
+    mongo.db.events.update_one({"_id": obj_id}, {"$set": {"status": "cancelled"}})
+    return jsonify({"message": "Event cancelled."}), 200
