@@ -83,7 +83,7 @@ def update_task_status(task_id):
         return jsonify({"error": "Invalid status. Must be 'In Progress' or 'Completed'."}), 400
 
     try:
-        result = mongo.db.tasks.update_one(
+        result = mongo.db.events.update_one(
             {"_id": ObjectId(task_id)},
             {"$set": {"status": new_status}}
         )
